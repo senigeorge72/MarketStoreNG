@@ -8,8 +8,8 @@ import ProductEditor from './product-editor';
 import { isAmplifyConfigured } from '@/lib/amplify-client';
 
 type User = { username: string; userId: string };
-type StoreData = { slug: string; businessName: string; description: string; phone: string; whatsapp: string; city: string; address: string; openingHours: string; deliveryInfo: string; logoUrl: string; productsJson: string };
-const empty: StoreData = { slug: '', businessName: '', description: '', phone: '', whatsapp: '', city: '', address: '', openingHours: '', deliveryInfo: '', logoUrl: '', productsJson: '[]' };
+type StoreData = { slug: string; businessName: string; description: string; category: string; phone: string; whatsapp: string; city: string; address: string; openingHours: string; deliveryInfo: string; logoUrl: string; productsJson: string };
+const empty: StoreData = { slug: '', businessName: '', description: '', category: '', phone: '', whatsapp: '', city: '', address: '', openingHours: '', deliveryInfo: '', logoUrl: '', productsJson: '[]' };
 const client = () => generateClient<Schema>();
 const slugify = (s: string) => s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
 const errText = (e: unknown) => e instanceof Error ? e.message : 'Something went wrong. Please try again.';
