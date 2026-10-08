@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { generateClient } from 'aws-amplify/data';
+import { getUrl } from 'aws-amplify/storage';
 import type { Schema } from '@/amplify/data/resource';
 import { isAmplifyConfigured } from '@/lib/amplify-client';
 
-type Product = { name: string; description?: string; price: number; photoUrl?: string; photoUrl2?: string };
+type Product = { name: string; description?: string; price: number; photoUrl?: string; photoUrl2?: string; photoPath?: string; photoPath2?: string };
 
 export default function Storefront({ slug }: { slug: string }) {
   const [store, setStore] = useState<Schema['Store']['type'] | null>(null);
@@ -36,7 +37,19 @@ export default function Storefront({ slug }: { slug: string }) {
           setStore(result.data);
           try {
             const parsed = JSON.parse(result.data.productsJson || '[]');
-            setProducts(Array.isArray(parsed) ? parsed : []);
+            const storedProducts: Product[] = Array.isArray(parsed) ? parsed : [];
+            const readyProducts = await Promise.all(storedProducts.map(async (product) => {
+              const [image1, image2] = await Promise.all([
+                product.photoPath ? getUrl({ path: product.photoPath, options: { expiresIn: 3600 } }).then(({ url }) => url.toString()).catch(() => '') : Promise.resolve(''),
+                product.photoPath2 ? getUrl({ path: product.photoPath2, options: { expiresIn: 3600 } }).then(({ url }) => url.toString()).catch(() => '') : Promise.resolve(''),
+              ]);
+              return {
+                ...product,
+                photoUrl: image1 || product.photoUrl,
+                photoUrl2: image2 || product.photoUrl2,
+              };
+            }));
+            if (active) setProducts(readyProducts);
           } catch {
             setProducts([]);
           }
