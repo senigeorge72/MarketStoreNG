@@ -49,7 +49,8 @@ async function uploadProductImage(file: File, slug: string) {
   const session = await fetchAuthSession();
   if (!session.identityId) throw Error('Your sign-in session is not ready. Sign out and back in, then try again.');
   const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8) || 'jpg';
-  const path = `products/${session.identityId}/${slug}/${crypto.randomUUID()}.${extension}`;
+  const uniqueName = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const path = `products/${session.identityId}/${slug}/${uniqueName}.${extension}`;
   await uploadData({ path, data: file, options: { contentType: file.type } }).result;
   return path;
 }
