@@ -1,0 +1,12 @@
+'use client';
+import { useState, type FormEvent } from 'react';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '@/amplify/data/resource';
+type Item={name:string;description:string;price:number;photoUrl:string};
+function readItems(json:string):Item[]{try{const v=JSON.parse(json||'[]');return Array.isArray(v)?v:[];}catch{return[];}}
+export default function ProductEditor({slug,initial}:{slug:string;initial:string}){
+ const [items,setItems]=useState(()=>readItems(initial)),[name,setName]=useState(''),[description,setDescription]=useState(''),[price,setPrice]=useState(''),[photoUrl,setPhotoUrl]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ async function commit(next:Item[]){setBusy(true);setError('');try{const r=await generateClient<Schema>().models.Store.update({slug,productsJson:JSON.stringify(next)},{authMode:'userPool'});if(r.errors?.length)throw Error(r.errors[0].message);setItems(next);}catch(e){setError(e instanceof Error?e.message:'Could not save products.');}finally{setBusy(false);}}
+ async function add(e:FormEvent){e.preventDefault();await commit([...items,{name:name.trim(),description:description.trim(),price:Number(price),photoUrl:photoUrl.trim()}]);setName('');setDescription('');setPrice('');setPhotoUrl('');}
+ return <section className="dashboard-card"><h2>Products</h2><p className="muted">Add product names, prices and optional public image links.</p>{items.length>0&&<div className="item-list">{items.map((item,i)=><article key={`${item.name}-${i}`}>{item.photoUrl&&<img src={item.photoUrl} alt=""/>}<div><b>{item.name}</b><p>{item.description}</p><strong>₦{Number(item.price).toLocaleString('en-NG')}</strong></div><button type="button" disabled={busy} onClick={()=>commit(items.filter((_,n)=>n!==i))}>Remove</button></article>)}</div>}<form className="form-grid product-form" onSubmit={add}><label>Product name<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Price in naira<input required min="0" step="0.01" type="number" value={price} onChange={e=>setPrice(e.target.value)}/></label><label>Description<input value={description} onChange={e=>setDescription(e.target.value)}/></label><label>Photo link<input type="url" placeholder="https://…" value={photoUrl} onChange={e=>setPhotoUrl(e.target.value)}/></label><button className="button wide full" disabled={busy}>{busy?'Saving…':'Add product'}</button></form>{error&&<p className="message error" role="alert">{error}</p>}</section>;
+}
