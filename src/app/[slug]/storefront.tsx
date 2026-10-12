@@ -95,9 +95,10 @@ export default function Storefront({ slug }: { slug: string }) {
         <div>{products.map((product, index) => {
           const images = [product.photoUrl, product.photoUrl2].filter((url): url is string => Boolean(url));
           return <article key={`${product.name}-${index}`}>
-            {images.length > 0 ? <div className={`product-images ${images.length > 1 ? 'has-two' : ''}`}>
+            {images.length > 0 ? <div className="product-images" aria-label={`${product.name} photos`} tabIndex={images.length > 1 ? 0 : undefined}>
               {images.map((url, imageIndex) => <img src={url} alt={`${product.name} image ${imageIndex + 1}`} key={`${url}-${imageIndex}`} />)}
             </div> : <div className="product-placeholder">{product.name.slice(0, 1)}</div>}
+            {images.length > 1 && <p className="image-scroll-hint">Swipe or scroll to see more photos</p>}
             <h3>{product.name}</h3>
             {product.description && <p>{product.description}</p>}
             <strong>₦{Number(product.price).toLocaleString('en-NG')}</strong>
