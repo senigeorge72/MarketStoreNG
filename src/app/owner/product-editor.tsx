@@ -105,14 +105,18 @@ export default function ProductEditor({ slug, initial }: { slug: string; initial
 
   async function add(e: FormEvent) {
     e.preventDefault();
+    if (!image1 || !image2) {
+      setError('Choose two images for this product before adding it.');
+      return;
+    }
     setBusy(true);
     setError('');
     const uploadedPaths: string[] = [];
     try {
-      const photoPath = image1 ? await uploadProductImage(image1, slug) : '';
-      if (photoPath) uploadedPaths.push(photoPath);
-      const photoPath2 = image2 ? await uploadProductImage(image2, slug) : '';
-      if (photoPath2) uploadedPaths.push(photoPath2);
+      const photoPath = await uploadProductImage(image1, slug);
+      uploadedPaths.push(photoPath);
+      const photoPath2 = await uploadProductImage(image2, slug);
+      uploadedPaths.push(photoPath2);
       const next = [...items, {
         name: name.trim(),
         description: description.trim(),
@@ -143,7 +147,7 @@ export default function ProductEditor({ slug, initial }: { slug: string; initial
   return (
     <section className="dashboard-card">
       <h2>Products</h2>
-      <p className="muted">Add product details and choose up to two images from your computer. Each image can be up to 5 MB.</p>
+      <p className="muted">Add product details and choose two images from your computer. Both images are required and can be up to 5 MB each.</p>
       {items.length > 0 && (
         <div className="item-list">
           {items.map((item, index) => {
@@ -162,8 +166,8 @@ export default function ProductEditor({ slug, initial }: { slug: string; initial
         <label>Product name<input required value={name} onChange={(e) => setName(e.target.value)} /></label>
         <label>Price in naira<input required min="0" step="0.01" type="number" value={price} onChange={(e) => setPrice(e.target.value)} /></label>
         <label>Description<input value={description} onChange={(e) => setDescription(e.target.value)} /></label>
-        <label>Product image 1 (optional)<input accept="image/*" type="file" onChange={(e) => setImage1(e.target.files?.[0] || null)} /></label>
-        <label>Product image 2 (optional)<input accept="image/*" type="file" onChange={(e) => setImage2(e.target.files?.[0] || null)} /></label>
+        <label>Product image 1 (required)<input required accept="image/*" type="file" onChange={(e) => setImage1(e.target.files?.[0] || null)} /></label>
+        <label>Product image 2 (required)<input required accept="image/*" type="file" onChange={(e) => setImage2(e.target.files?.[0] || null)} /></label>
         <button className="button wide full" disabled={busy}>{busy ? 'Uploading and saving…' : 'Add product'}</button>
       </form>
       {error && <p className="message error" role="alert">{error}</p>}
