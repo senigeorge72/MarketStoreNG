@@ -105,7 +105,6 @@ export default function Storefront({ slug }: { slug: string }) {
           </article>;
         })}</div>
       </section>}
-      <footer><span>Store page on MarketStore.ng</span><Link href="/owner?mode=signup">Create your own store</Link></footer>
     </main>
   );
 }

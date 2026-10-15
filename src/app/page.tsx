@@ -7,6 +7,5 @@ export default function Home() {
     </section>
     <section className="section" id="features"><p className="eyebrow">Your online storefront</p><h2>Everything customers need to choose you</h2><p className="muted">Show your business details, products and contact information in one shareable place.</p><div className="features"><article><b>01</b><h3>Your profile</h3><p>Business name, description, location, opening hours and delivery information.</p></article><article><b>02</b><h3>Your products</h3><p>Add product names, prices, descriptions and image links.</p></article><article><b>03</b><h3>Direct contact</h3><p>Customers can call or message you on WhatsApp to place an order.</p></article></div></section>
     <section className="section how" id="how"><p className="eyebrow">Simple to set up</p><h2>From account to store link</h2><ol><li><b>Create your owner account</b><span>Sign up with your email and verify it.</span></li><li><b>Add your business details</b><span>Choose your name and public store address.</span></li><li><b>Share your page</b><span>Your page is available at marketstore.ng/your-business-name.</span></li></ol></section>
-    <footer><span>© 2026 MarketStore.ng</span><Link href="/owner">Store owner sign in</Link></footer>
   </main>;
 }
