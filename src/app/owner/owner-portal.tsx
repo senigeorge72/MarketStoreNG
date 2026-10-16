@@ -1,30 +1,32 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
-import { confirmSignUp, getCurrentUser, signIn, signOut, signUp } from 'aws-amplify/auth';
+import { confirmSignUp, fetchAuthSession, getCurrentUser, signIn, signOut, signUp } from 'aws-amplify/auth';
+import AdminDashboard from './admin-dashboard';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
 import ProductEditor from './product-editor';
 import { isAmplifyConfigured } from '@/lib/amplify-client';
 
-type User = { username: string; userId: string };
+type User = { username: string; userId: string; isAdmin: boolean };
 type StoreData = { slug: string; businessName: string; description: string; category: string; phone: string; whatsapp: string; city: string; address: string; openingHours: string; deliveryInfo: string; logoUrl: string; productsJson: string };
 const empty: StoreData = { slug: '', businessName: '', description: '', category: '', phone: '', whatsapp: '', city: '', address: '', openingHours: '', deliveryInfo: '', logoUrl: '', productsJson: '[]' };
 const client = () => generateClient<Schema>();
 const slugify = (s: string) => s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
 const errText = (e: unknown) => e instanceof Error ? e.message : 'Something went wrong. Please try again.';
+async function getPortalUser(): Promise<User> { const user = await getCurrentUser(); const session = await fetchAuthSession(); const groups = session.tokens?.accessToken.payload['cognito:groups']; return { ...user, isAdmin: Array.isArray(groups) && groups.includes('MARKETSTORE_ADMINS') }; }
 
 export default function OwnerPortal() {
  const [user,setUser]=useState<User|null>(null),[mode,setMode]=useState<'signup'|'signin'|'verify'>('signin'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[code,setCode]=useState(''),[error,setError]=useState(''),[note,setNote]=useState(''),[busy,setBusy]=useState(false);
- useEffect(()=>{if(isAmplifyConfigured)getCurrentUser().then(setUser).catch(()=>{});},[]);
+ useEffect(()=>{if(isAmplifyConfigured)getPortalUser().then(setUser).catch(()=>{});},[]);
  useEffect(()=>{if(new URLSearchParams(window.location.search).get('mode')==='signup')setMode('signup');},[]);
  async function authSubmit(e:FormEvent){e.preventDefault();setError('');setNote('');setBusy(true);try{
   if(mode==='signup'){const r=await signUp({username:email.trim().toLowerCase(),password,options:{userAttributes:{email:email.trim().toLowerCase()}}});if(!r.isSignUpComplete){setMode('verify');setNote('Check your email for a verification code.');}}
   else if(mode==='verify'){await confirmSignUp({username:email.trim().toLowerCase(),confirmationCode:code.trim()});setMode('signin');setNote('Email verified. Sign in to create your store.');}
-  else {const r=await signIn({username:email.trim().toLowerCase(),password});if(r.isSignedIn)setUser(await getCurrentUser());else setNote('Complete email verification, then sign in again.');}
+  else {const r=await signIn({username:email.trim().toLowerCase(),password});if(r.isSignedIn)setUser(await getPortalUser());else setNote('Complete email verification, then sign in again.');}
  }catch(e){setError(errText(e));}finally{setBusy(false);}}
  if(!isAmplifyConfigured)return <main className="portal"><header><Link className="brand" href="/">Market<span>Store</span>.ng</Link><Link href="/">Home</Link></header><section className="auth-card"><p className="eyebrow">Owner accounts</p><h1>Connect your AWS account</h1><p>Sign-up and store editing are ready in this project. Deploy the Amplify backend to your AWS account to create Cognito sign-in and the store database.</p><p className="notice">The existing S3 website is untouched. Follow the setup instructions in this project’s README.</p><Link className="button" href="/">Return home</Link></section></main>;
- if(user)return <Dashboard user={user} onSignOut={async()=>{await signOut();setUser(null);}}/>;
+ if(user){const onSignOut=async()=>{await signOut();setUser(null);};return user.isAdmin?<AdminDashboard user={user} onSignOut={onSignOut}/>:<Dashboard user={user} onSignOut={onSignOut}/>;}
  return <main className="portal"><header><Link className="brand" href="/">Market<span>Store</span>.ng</Link><Link href="/">Home</Link></header><section className="auth-card"><p className="eyebrow">For store owners</p><h1>{mode==='signup'?'Create your owner account':mode==='verify'?'Verify your email':'Store owner sign in'}</h1><p>Sign in or create an account, then make your business page at marketstore.ng/your-business-name.</p>
  {mode!=='verify'&&<div className="tabs"><button className={mode==='signup'?'active':''} onClick={()=>{setMode('signup');setError('');setNote('');}}>Create account</button><button className={mode==='signin'?'active':''} onClick={()=>{setMode('signin');setError('');setNote('');}}>Sign in</button></div>}
  <form className="stack" onSubmit={authSubmit}><label>Email address<input type="email" autoComplete="email" required disabled={mode==='verify'} value={email} onChange={e=>setEmail(e.target.value)}/></label>{mode!=='verify'&&<label>Password<input type="password" autoComplete={mode==='signup'?'new-password':'current-password'} minLength={8} required value={password} onChange={e=>setPassword(e.target.value)}/></label>}{mode==='verify'&&<label>Verification code<input inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={e=>setCode(e.target.value)}/></label>}<button className="button wide" disabled={busy}>{busy?'Please wait…':mode==='signup'?'Create account':mode==='verify'?'Verify email':'Sign in'}</button></form>

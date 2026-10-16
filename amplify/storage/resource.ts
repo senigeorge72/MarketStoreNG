@@ -6,6 +6,7 @@ export const storage = defineStorage({
     'products/{entity_id}/*': [
       allow.guest.to(['read']),
       allow.entity('identity').to(['read', 'write', 'delete']),
+      allow.groups(['MARKETSTORE_ADMINS']).to(['read', 'write', 'delete']),
     ],
   }),
 });
