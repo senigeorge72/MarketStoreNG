@@ -12,6 +12,7 @@ export default function SiteFooter() {
         <span>Follow us</span>
         <a href="https://www.instagram.com/marketstore.ng" target="_blank" rel="noreferrer">Instagram</a>
         <a href="https://www.facebook.com/profile.php?id=61594609373613" target="_blank" rel="noreferrer">Facebook</a>
+        <a href="https://www.linkedin.com/company/marketstoreng/about/?viewAsMember=true" target="_blank" rel="noreferrer">LinkedIn</a>
       </nav>
     </footer>
   );
