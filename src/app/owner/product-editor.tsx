@@ -17,6 +17,7 @@ type Item = {
 };
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_PRODUCTS = 10;
 
 function readItems(json: string): Item[] {
   try {
@@ -105,6 +106,10 @@ export default function ProductEditor({ slug, initial }: { slug: string; initial
 
   async function add(e: FormEvent) {
     e.preventDefault();
+    if (items.length >= MAX_PRODUCTS) {
+      setError(`A store can have up to ${MAX_PRODUCTS} products.`);
+      return;
+    }
     if (!image1 || !image2) {
       setError('Choose two images for this product before adding it.');
       return;
@@ -146,8 +151,8 @@ export default function ProductEditor({ slug, initial }: { slug: string; initial
 
   return (
     <section className="dashboard-card">
-      <h2>Products</h2>
-      <p className="muted">Add product details and choose two images from your computer. Both images are required and can be up to 5 MB each.</p>
+      <h2>Products ({items.length} / {MAX_PRODUCTS})</h2>
+      <p className="muted">Add up to 10 products. Each product requires exactly two images from your computer, up to 5 MB each.</p>
       {items.length > 0 && (
         <div className="item-list">
           {items.map((item, index) => {
@@ -162,14 +167,14 @@ export default function ProductEditor({ slug, initial }: { slug: string; initial
           })}
         </div>
       )}
-      <form ref={formRef} className="form-grid product-form" onSubmit={add}>
+      {items.length < MAX_PRODUCTS ? <form ref={formRef} className="form-grid product-form" onSubmit={add}>
         <label>Product name<input required value={name} onChange={(e) => setName(e.target.value)} /></label>
         <label>Price in naira<input required min="0" step="0.01" type="number" value={price} onChange={(e) => setPrice(e.target.value)} /></label>
         <label>Description<input value={description} onChange={(e) => setDescription(e.target.value)} /></label>
         <label>Product image 1 (required)<input required accept="image/*" type="file" onChange={(e) => setImage1(e.target.files?.[0] || null)} /></label>
         <label>Product image 2 (required)<input required accept="image/*" type="file" onChange={(e) => setImage2(e.target.files?.[0] || null)} /></label>
         <button className="button wide full" disabled={busy}>{busy ? 'Uploading and saving…' : 'Add product'}</button>
-      </form>
+      </form> : <p className="notice">The 10-product limit is reached. Remove a product before adding another.</p>}
       {error && <p className="message error" role="alert">{error}</p>}
     </section>
   );
