@@ -152,7 +152,7 @@ export default function ProductEditor({ slug, initial }: { slug: string; initial
   return (
     <section className="dashboard-card">
       <h2>Products ({items.length} / {MAX_PRODUCTS})</h2>
-      <p className="muted">Add up to 10 products. Each product requires exactly two images from your computer, up to 5 MB each.</p>
+      <p className="muted">Add up to 10 products. Each product needs two photos, and each photo can be up to 5 MB. Use the Choose File buttons below to attach images from your device.</p>
       {items.length > 0 && (
         <div className="item-list">
           {items.map((item, index) => {
@@ -171,8 +171,8 @@ export default function ProductEditor({ slug, initial }: { slug: string; initial
         <label>Product name<input required value={name} onChange={(e) => setName(e.target.value)} /></label>
         <label>Price in naira<input required min="0" step="0.01" type="number" value={price} onChange={(e) => setPrice(e.target.value)} /></label>
         <label>Description<input value={description} onChange={(e) => setDescription(e.target.value)} /></label>
-        <label>Product image 1 (required)<input required accept="image/*" type="file" onChange={(e) => setImage1(e.target.files?.[0] || null)} /></label>
-        <label>Product image 2 (required)<input required accept="image/*" type="file" onChange={(e) => setImage2(e.target.files?.[0] || null)} /></label>
+        <label className="image-upload-field"><span>Product image 1 <strong>Required · max 5 MB</strong></span><input required accept="image/*" type="file" onChange={(e) => setImage1(e.target.files?.[0] || null)} /><small>{image1 ? `Selected: ${image1.name}` : 'Click Choose File to attach an image from your device.'}</small></label>
+        <label className="image-upload-field"><span>Product image 2 <strong>Required · max 5 MB</strong></span><input required accept="image/*" type="file" onChange={(e) => setImage2(e.target.files?.[0] || null)} /><small>{image2 ? `Selected: ${image2.name}` : 'Click Choose File to attach an image from your device.'}</small></label>
         <button className="button wide full" disabled={busy}>{busy ? 'Uploading and saving…' : 'Add product'}</button>
       </form> : <p className="notice">The 10-product limit is reached. Remove a product before adding another.</p>}
       {error && <p className="message error" role="alert">{error}</p>}
