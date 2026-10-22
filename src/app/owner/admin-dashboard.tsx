@@ -7,10 +7,11 @@ import type { Schema } from '@/amplify/data/resource';
 import ProductEditor from './product-editor';
 
 type User = { username: string; userId: string; isAdmin: boolean };
-type StoreData = { slug: string; businessName: string; description: string; category: string; phone: string; whatsapp: string; city: string; address: string; openingHours: string; deliveryInfo: string; logoUrl: string; productsJson: string };
+type StoreData = { owner: string; slug: string; businessName: string; description: string; category: string; phone: string; whatsapp: string; city: string; address: string; openingHours: string; deliveryInfo: string; logoUrl: string; productsJson: string };
 type StoreRecord = Schema['Store']['type'];
 const client = () => generateClient<Schema>();
 const errText = (e: unknown) => e instanceof Error ? e.message : 'Something went wrong. Please try again.';
+const slugify = (s: string) => s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
 
 export default function AdminDashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const [stores, setStores] = useState<StoreData[]>([]);
@@ -36,7 +37,7 @@ export default function AdminDashboard({ user, onSignOut }: { user: User; onSign
         allStores.push(...(result.data || []));
         nextToken = result.nextToken || undefined;
       } while (nextToken);
-      setStores(allStores.map((store) => ({ slug: store.slug, businessName: store.businessName, description: store.description || '', category: store.category || '', phone: store.phone || '', whatsapp: store.whatsapp || '', city: store.city || '', address: store.address || '', openingHours: store.openingHours || '', deliveryInfo: store.deliveryInfo || '', logoUrl: store.logoUrl || '', productsJson: store.productsJson || '[]' })));
+      setStores(allStores.map((store) => ({ owner: store.owner || '', slug: store.slug, businessName: store.businessName, description: store.description || '', category: store.category || '', phone: store.phone || '', whatsapp: store.whatsapp || '', city: store.city || '', address: store.address || '', openingHours: store.openingHours || '', deliveryInfo: store.deliveryInfo || '', logoUrl: store.logoUrl || '', productsJson: store.productsJson || '[]' })));
     } catch (e) { setError(errText(e)); }
     finally { setLoading(false); }
   }, []);
@@ -51,18 +52,35 @@ export default function AdminDashboard({ user, onSignOut }: { user: User; onSign
     if (!form) return;
     setBusy(true); setError(''); setNote('');
     try {
-      const result = await client().models.Store.update({ slug: form.slug, businessName: form.businessName.trim(), description: form.description, category: form.category, phone: form.phone, whatsapp: form.whatsapp, city: form.city, address: form.address, openingHours: form.openingHours, deliveryInfo: form.deliveryInfo, logoUrl: form.logoUrl }, { authMode: 'userPool' });
-      if (result.errors?.length) throw Error(result.errors[0].message);
-      if (!result.data) throw Error('The store could not be saved.');
+      const nextSlug = slugify(form.slug);
+      if (!nextSlug || ['owner', 'dashboard', 'api', 'admin', 'search', 'create', 'businesses'].includes(nextSlug)) throw Error('Choose a valid store link.');
+      if (stores.some((store) => store.slug === nextSlug && store.slug !== selectedSlug)) throw Error('That store link is already in use. Choose another.');
+      const input = { businessName: form.businessName.trim(), description: form.description, category: form.category, phone: form.phone, whatsapp: form.whatsapp, city: form.city, address: form.address, openingHours: form.openingHours, deliveryInfo: form.deliveryInfo, logoUrl: form.logoUrl };
+      if (nextSlug === selectedSlug) {
+        const result = await client().models.Store.update({ slug: selectedSlug, ...input }, { authMode: 'userPool' });
+        if (result.errors?.length) throw Error(result.errors[0].message);
+        if (!result.data) throw Error('The store could not be saved.');
+      } else {
+        const created = await client().models.Store.create({ slug: nextSlug, owner: form.owner, productsJson: form.productsJson, ...input }, { authMode: 'userPool' });
+        if (created.errors?.length) throw Error(created.errors[0].message);
+        if (!created.data) throw Error('The new store link could not be created.');
+        const removed = await client().models.Store.delete({ slug: selectedSlug }, { authMode: 'userPool' });
+        if (removed.errors?.length || !removed.data) {
+          await client().models.Store.delete({ slug: nextSlug }, { authMode: 'userPool' }).catch(() => undefined);
+          throw Error('The old store link could not be replaced. The original store remains available. Try again or contact support.');
+        }
+      }
+      const saved = { ...form, ...input, slug: nextSlug };
       await loadStores();
-      setNote('Store details saved.');
+      setSelectedSlug(nextSlug);
+      setForm(saved);
+      setNote(nextSlug === selectedSlug ? 'Store details saved.' : `Store link changed to marketstore.ng/${nextSlug}. The previous link no longer works.`);
     } catch (e) { setError(errText(e)); }
     finally { setBusy(false); }
   }
-
   return <main className="dashboard"><header><Link className="brand" href="/">Market<span>Store</span>.ng</Link><div className="account"><span>{user.username} · Admin</span><button onClick={onSignOut}>Sign out</button></div></header><section className="dash-title"><p className="eyebrow">MarketStore administration</p><h1>Manage all stores</h1><p>Admin access applies across every store. Store owners retain access to their own pages.</p></section>
     <section className="dashboard-card"><h2>Stores ({stores.length})</h2><label>Find a store<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by business, link, or city" /></label>{loading ? <p className="loading">Loading stores…</p> : visibleStores.length ? <div className="item-list admin-store-list">{visibleStores.map((store) => <article key={store.slug}><div><b>{store.businessName}</b><p>{store.city || 'City not set'} · marketstore.ng/{store.slug}</p></div><button type="button" onClick={() => setSelectedSlug(store.slug)}>{selectedSlug === store.slug ? 'Selected' : 'Manage'}</button></article>)}</div> : <p className="muted">No stores found.</p>}</section>
-    {form && <><section className="dashboard-card"><h2>Manage {form.businessName}</h2><p className="notice"><Link href={`/${form.slug}`} target="_blank">Open public store page ↗</Link></p><form className="form-grid" onSubmit={save}><label>Business name<input required maxLength={80} value={form.businessName} onChange={(e) => change('businessName', e.target.value)} /></label><label>Store link<input disabled value={form.slug} /><small>marketstore.ng/{form.slug}</small></label><label>Category<input value={form.category} onChange={(e) => change('category', e.target.value)} /></label><label>City<input value={form.city} onChange={(e) => change('city', e.target.value)} /></label><label>Phone<input type="tel" value={form.phone} onChange={(e) => change('phone', e.target.value)} /></label><label>WhatsApp<input type="tel" value={form.whatsapp} onChange={(e) => change('whatsapp', e.target.value)} /></label><label className="full">About the business<textarea rows={3} value={form.description} onChange={(e) => change('description', e.target.value)} /></label><label className="full">Address or area<input value={form.address} onChange={(e) => change('address', e.target.value)} /></label><label>Opening hours<textarea rows={2} value={form.openingHours} onChange={(e) => change('openingHours', e.target.value)} /></label><label>Delivery information<textarea rows={2} value={form.deliveryInfo} onChange={(e) => change('deliveryInfo', e.target.value)} /></label><label className="full">Logo image link<input type="url" value={form.logoUrl} onChange={(e) => change('logoUrl', e.target.value)} /></label><button className="button wide full" disabled={busy}>{busy ? 'Saving…' : 'Save store details'}</button></form>{error && <p className="message error" role="alert">{error}</p>}{note && <p className="message" role="status">{note}</p>}</section><ProductEditor key={form.slug} slug={form.slug} initial={form.productsJson} /></>}
+    {form && <><section className="dashboard-card"><h2>Manage {form.businessName}</h2><p className="notice"><Link href={`/${form.slug}`} target="_blank">Open public store page ↗</Link></p><form className="form-grid" onSubmit={save}><label>Business name<input required maxLength={80} value={form.businessName} onChange={(e) => change('businessName', e.target.value)} /></label><label>Store link<input required maxLength={48} value={form.slug} onChange={(e) => change('slug', slugify(e.target.value))} /><small>marketstore.ng/{form.slug}. Changing it makes the old link stop working.</small></label><label>Category<input value={form.category} onChange={(e) => change('category', e.target.value)} /></label><label>City<input value={form.city} onChange={(e) => change('city', e.target.value)} /></label><label>Phone<input type="tel" value={form.phone} onChange={(e) => change('phone', e.target.value)} /></label><label>WhatsApp<input type="tel" value={form.whatsapp} onChange={(e) => change('whatsapp', e.target.value)} /></label><label className="full">About the business<textarea rows={3} value={form.description} onChange={(e) => change('description', e.target.value)} /></label><label className="full">Address or area<input value={form.address} onChange={(e) => change('address', e.target.value)} /></label><label>Opening hours<textarea rows={2} value={form.openingHours} onChange={(e) => change('openingHours', e.target.value)} /></label><label>Delivery information<textarea rows={2} value={form.deliveryInfo} onChange={(e) => change('deliveryInfo', e.target.value)} /></label><label className="full">Logo image link<input type="url" value={form.logoUrl} onChange={(e) => change('logoUrl', e.target.value)} /></label><button className="button wide full" disabled={busy}>{busy ? 'Saving…' : 'Save store details'}</button></form>{error && <p className="message error" role="alert">{error}</p>}{note && <p className="message" role="status">{note}</p>}</section><ProductEditor key={form.slug} slug={form.slug} initial={form.productsJson} /></>}
     {!form && error && <p className="message error" role="alert">{error}</p>}
   </main>;
 }
