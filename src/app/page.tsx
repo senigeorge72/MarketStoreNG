@@ -2,7 +2,7 @@ import Link from 'next/link';
 import StoreSearch from './store-search';
 export default function Home() {
   return <main>
-    <header className="topbar"><Link className="brand" href="/">Market<span>Store</span>.ng</Link><nav className="nav-links"><a href="#how">How it works</a><a href="#features">What you get</a><Link href="/owner">Store owner log in</Link><Link className="button small" href="/owner?mode=signup">Create a page</Link></nav></header>
+    <header className="topbar"><Link className="brand" href="/">Market<span>Store</span>.ng</Link><nav className="nav-links"><a href="#how">How it works</a><a href="#features">What you get</a><Link className="button small" href="/owner?mode=signup">Create a page</Link></nav></header>
     <section className="hero"><div><p className="eyebrow">Nigeria’s small businesses</p><h1>We put small<br/><span>businesses online.</span></h1><p className="lead">Create a professional store page, add your products, and share one simple link with your customers.</p><div className="actions"><Link className="button" href="/owner?mode=signup">Create a page</Link><Link className="button outline" href="/owner">Store owner log in</Link></div><p className="small-note">Sign up with your email, then create your business page.</p></div>
       
     </section>
