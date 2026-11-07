@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main>
-      <div style={{ backgroundColor: "#e8f5e9", color: "#0c4a26", padding: "8px 0", fontSize: "14px", fontWeight: "600", textAlign: "center" }}>
-        <span>Join millions of businesses selling online</span>
+      <div style={{ backgroundColor: "#e8f5e9", color: "#0c4a26", padding: "8px 0", fontSize: "14px", fontWeight: "600" }}>
+        <marquee>Join millions of businesses selling online</marquee>
       </div>
 
       <header className="topbar">
@@ -29,36 +29,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Search Section with Category Discovery Tags */}
-      <section className="search-section" style={{ padding: "40px 20px", textAlign: "center", backgroundColor: "#f9fafb" }}>
-        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-          <h4 style={{ marginBottom: "12px", fontSize: "20px" }}>Find a business or product</h4>
-          <input 
-            type="text" 
-            placeholder="Search by business name or product..." 
-            style={{ width: "100%", padding: "14px 20px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "16px" }}
-          />
-          
-          {/* Quick-Click Category Tags */}
-          <div style={{ marginTop: "16px", display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", alignItems: "center" }}>
-            <span style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}>Popular:</span>
-            {["Fashion & Apparel", "Phones & Tech", "Beauty & Hair", "Food & Groceries"].map((category) => (
-              <span 
-                key={category} 
-                style={{ 
-                  backgroundColor: "#ffffff", 
-                  border: "1px solid #e0e0e0", 
-                  borderRadius: "16px", 
-                  padding: "4px 12px", 
-                  fontSize: "13px", 
-                  color: "#2c3e50", 
-                  cursor: "pointer" 
-                }}
-              >
-                {category}
-              </span>
-            ))}
-          </div>
+      <section className="search-section">
+        <div>
+          <h4>Find a business or product</h4>
+          <input type="text" placeholder="Search by business name or product" />
         </div>
       </section>
 
