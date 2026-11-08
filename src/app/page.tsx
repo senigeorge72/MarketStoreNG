@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main>
-      <div style={{ backgroundColor: "#e8f5e9", color: "#0c4a26", padding: "8px 0", fontSize: "14px", fontWeight: "600" }}>
-        <marquee>Join millions of businesses selling online</marquee>
+      <div style={{ backgroundColor: "#e8f5e9", color: "#0c4a26", padding: "8px 0", fontSize: "14px", fontWeight: "600", textAlign: "center" }}>
+        <span>Join millions of businesses selling online</span>
       </div>
 
       <header className="topbar">
