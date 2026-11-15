@@ -17,4 +17,4 @@ The store record contains only information intended for public display. Owners c
 The current `marketstore.ng` S3 site is not changed. Deploy this app to an Amplify staging branch and verify account creation and public store links first. Only then attach `marketstore.ng` to Amplify and change its DNS mapping. Production sign-up email delivery needs a configured Cognito/SES sender.
 
 ## Current limits
-One store per owner. Image fields accept public image URLs; direct image uploads, payments, delivery integrations, reviews, and moderation are future work.
+One store per owner. Image fields accept public image URLs; direct image uploads, payment processing, delivery integrations, reviews, and moderation are future work. Customer orders can be tracked through seller-managed statuses; payments remain arranged directly between customers and sellers, and MarketStore does not hold funds.
