@@ -17,7 +17,7 @@ export default function OwnerOrders({ storeSlug }: { storeSlug: string }) {
   async function load() {
     const result = await generateClient<Schema>().models.Order.list({
       authMode: 'userPool',
-      selectionSet: ['id', 'storeSlug', 'customerName', 'deliveryLocation', 'itemsJson', 'total', 'status', 'createdAt'],
+      selectionSet: ['id', 'storeSlug', 'sellerOwner', 'customerName', 'deliveryLocation', 'itemsJson', 'total', 'status', 'createdAt', 'updatedAt'],
     });
     if (result.errors?.length) throw new Error(result.errors[0].message);
     setOrders((result.data || []).filter((order) => order.storeSlug === storeSlug).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
