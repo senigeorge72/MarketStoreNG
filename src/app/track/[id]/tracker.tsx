@@ -10,9 +10,10 @@ const steps = [
   ['PLACED', 'Order placed'], ['ACCEPTED', 'Seller accepted'], ['PREPARING', 'Preparing order'], ['READY_FOR_DELIVERY', 'Ready for delivery'], ['COMPLETED', 'Completed'],
 ] as const;
 const statusLabels: Record<string, string> = { PLACED: 'Order placed', ACCEPTED: 'Accepted by seller', PREPARING: 'Being prepared', READY_FOR_DELIVERY: 'Ready for delivery', COMPLETED: 'Completed', CANCELLED: 'Cancelled' };
+type TrackedOrder = Pick<Schema['Order']['type'], 'id' | 'storeSlug' | 'customerName' | 'itemsJson' | 'total' | 'status' | 'createdAt' | 'updatedAt'>;
 
 export default function OrderTracker({ id }: { id: string }) {
-  const [order, setOrder] = useState<Schema['Order']['type'] | null>(null);
+  const [order, setOrder] = useState<TrackedOrder | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
