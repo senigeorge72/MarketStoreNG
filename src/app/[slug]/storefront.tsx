@@ -85,7 +85,8 @@ export default function Storefront({ slug }: { slug: string }) {
   async function placeOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setOrderError('');
-    if (!store.owner || basket.length === 0 || !Number.isFinite(total) || total <= 0) {
+    const currentStore = store;
+    if (!currentStore?.owner || basket.length === 0 || !Number.isFinite(total) || total <= 0) {
       setOrderError('This store cannot accept tracked orders right now. Please contact the seller.');
       return;
     }
@@ -94,8 +95,8 @@ export default function Storefront({ slug }: { slug: string }) {
       const id = crypto.randomUUID();
       const result = await generateClient<Schema>().models.Order.create({
         id,
-        storeSlug: store.slug,
-        sellerOwner: store.owner,
+        storeSlug: currentStore.slug,
+        sellerOwner: currentStore.owner,
         customerName: customerName.trim(),
         deliveryLocation: deliveryLocation.trim(),
         itemsJson: JSON.stringify(basket.map(({ product, quantity }) => ({ name: product.name, price: Number(product.price), quantity }))),
