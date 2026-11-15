@@ -14,7 +14,7 @@ const schema = a.schema({
     deliveryLocation: a.string().required(),
     itemsJson: a.string().required(),
     total: a.float().required(),
-    status: a.enum(['PLACED', 'ACCEPTED', 'PREPARING', 'READY_FOR_DELIVERY', 'COMPLETED', 'CANCELLED']).authorization((allow) => [allow.ownerDefinedIn('sellerOwner'), allow.guest().to(['read']), allow.publicApiKey().to(['read'])]),
+    status: a.string().authorization((allow) => [allow.ownerDefinedIn('sellerOwner'), allow.guest().to(['read']), allow.publicApiKey().to(['read'])]),
   }).authorization((allow) => [allow.ownerDefinedIn('sellerOwner'), allow.guest().to(['create', 'get']), allow.publicApiKey().to(['create', 'get'])]),
 });
 
